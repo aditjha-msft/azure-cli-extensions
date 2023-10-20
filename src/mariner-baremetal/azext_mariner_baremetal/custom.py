@@ -33,12 +33,6 @@ def create_mariner_baremetal_installer(
             "Error retrieving AAD access token! Please log in and try again."
         )
 
-    location = (
-        get_default_location_from_resource_group(cmd, resource_group_name)
-        if location is None
-        else location
-    )
-
     # Create the PUT request URL
     endpoint_url = _construct_endpoint_url(
         get_subscription_id(cmd.cli_ctx), resource_group_name, installer_name
@@ -99,12 +93,6 @@ def list_mariner_baremetal_installer(
             "Error retrieving AAD access token! Please log in and try again."
         )
 
-    location = (
-        get_default_location_from_resource_group(cmd, resource_group_name)
-        if location is None
-        else location
-    )
-
     # Create the GET request URL
     endpoint_url = _construct_endpoint_url(
         get_subscription_id(cmd.cli_ctx), resource_group_name, None
@@ -152,12 +140,6 @@ def show_mariner_baremetal_installer(
             "Error retrieving AAD access token! Please log in and try again."
         )
 
-    location = (
-        get_default_location_from_resource_group(cmd, resource_group_name)
-        if location is None
-        else location
-    )
-
     # Create the GET request URL
     endpoint_url = _construct_endpoint_url(
         get_subscription_id(cmd.cli_ctx), resource_group_name, installer_name
@@ -204,12 +186,6 @@ def delete_mariner_baremetal_installer(
         raise CLIError(
             "Error retrieving AAD access token! Please log in and try again."
         )
-
-    location = (
-        get_default_location_from_resource_group(cmd, resource_group_name)
-        if location is None
-        else location
-    )
 
     # Create the DELETE request URL
     endpoint_url = _construct_endpoint_url(

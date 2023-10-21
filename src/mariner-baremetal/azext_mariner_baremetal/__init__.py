@@ -17,9 +17,7 @@ class MarinerBaremetalCommandsLoader(AzCommandsLoader):
             operations_tmpl="azext_mariner_baremetal.custom#{}",
             client_factory=cf_mariner_baremetal,
         )
-        super(MarinerBaremetalCommandsLoader, self).__init__(
-            cli_ctx=cli_ctx, custom_command_type=mariner_baremetal_custom
-        )
+        super().__init__(cli_ctx=cli_ctx, custom_command_type=mariner_baremetal_custom)
 
     def load_command_table(self, args):
         from azext_mariner_baremetal.commands import load_command_table

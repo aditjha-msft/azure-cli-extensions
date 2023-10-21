@@ -15,6 +15,13 @@ helps[
 """
 
 helps[
+    "mariner-baremetal installer"
+] = """
+    type: group
+    short-summary: CLI Extension to create Mariner Baremetal Installer Images through Azure.
+"""
+
+helps[
     "mariner-baremetal installer create"
 ] = """
     type: command
@@ -33,13 +40,6 @@ helps[
 ] = """
     type: command
     short-summary: Gets the Baremetal Installer Image resource.
-"""
-
-helps[
-    "mariner-baremetal installer update"
-] = """
-    type: command
-    short-summary: Updates the Baremetal Installer Image resource.
 """
 
 helps[

@@ -2,15 +2,22 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
+# pylint: disable=line-too-long
+# pylint: disable=broad-except
+# pylint: disable=unused-argument
+# pylint: disable=wildcard-import
+
+import json
+import uuid
+import requests
+import yaml
 
 from knack.util import CLIError
 from knack.log import get_logger
-
-from ._constants import *
-from azure.cli.core.commands.client_factory import get_subscription_id
-from azure.cli.core.commands.validators import get_default_location_from_resource_group
 from azure.cli.core._profile import Profile
-import yaml, json, requests, uuid
+from azure.cli.core.commands.client_factory import get_subscription_id
+from ._constants import *
+
 
 logger = get_logger(__name__)
 
@@ -26,12 +33,7 @@ def create_mariner_baremetal_installer(
     tags=None,
 ):
     # Get Entra Id (AAD) token
-    profile = Profile(cmd.cli_ctx)
-    access_token = profile.get_raw_token()[0][2].get("accessToken")
-    if access_token is None:
-        raise CLIError(
-            "Error retrieving AAD access token! Please log in and try again."
-        )
+    access_token = _get_access_token(cmd)
 
     # Create the PUT request URL
     endpoint_url = _construct_endpoint_url(
@@ -46,52 +48,26 @@ def create_mariner_baremetal_installer(
         raise CLIError("Error parsing provided host configuration file")
 
     # Create the PUT request
-    req_headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json",
-        "x-ms-client-request-id": str(uuid.uuid1()),
-    }
-    logger.debug(f"Request headers: {req_headers}\n")
+    req_headers = _set_request_headers(access_token)
 
     # Generate the request body
     request_body = _generate_create_request_body(
         location, user_storage_account, blob_container_name, installer_name, host_config
     )
-    logger.debug(f"Request body: {request_body}")
 
+    # Create the PUT request
     response = requests.put(
         endpoint_url,
         headers=req_headers,
         data=request_body,
+        timeout=DEFAULT_TIMEOUT,
     )
-
-    # Log the response
-    logger.debug(f"Response status code: {response.status_code}")
-    logger.debug(f"Response headers: {response.headers}")
-    logger.debug(f"Response content: {response.json()}")
-
-    # Check the response status code
-    if response.status_code == 200:
-        print(json.dumps(response.json(), indent=2))
-    else:
-        logger.error(
-            f"Failed to create Mariner Baremetal installer image {installer_name} with status code {response.status_code}"
-        )
+    _log_response(response, "create")
 
 
-def list_mariner_baremetal_installer(
-    cmd,
-    resource_group_name,
-    location=None,
-    tags=None,
-):
+def list_mariner_baremetal_installer(cmd, resource_group_name):
     # Get Entra Id (AAD) token
-    profile = Profile(cmd.cli_ctx)
-    access_token = profile.get_raw_token()[0][2].get("accessToken")
-    if access_token is None:
-        raise CLIError(
-            "Error retrieving AAD access token! Please log in and try again."
-        )
+    access_token = _get_access_token(cmd)
 
     # Create the GET request URL
     endpoint_url = _construct_endpoint_url(
@@ -99,46 +75,23 @@ def list_mariner_baremetal_installer(
     )
 
     # Create the GET request
-    req_headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json",
-        "x-ms-client-request-id": str(uuid.uuid1()),
-    }
-    logger.debug(f"Request headers: {req_headers}\n")
+    req_headers = _set_request_headers(access_token)
 
     response = requests.get(
         endpoint_url,
         headers=req_headers,
+        timeout=DEFAULT_TIMEOUT,
     )
-
-    # Log the response
-    logger.debug(f"Response status code: {response.status_code}")
-    logger.debug(f"Response headers: {response.headers}")
-    logger.debug(f"Response content: {response.json()}")
-
-    # Check the response status code
-    if response.status_code == 200:
-        print(json.dumps(response.json(), indent=2))
-    else:
-        logger.error(
-            f"Failed to list Mariner Baremetal installer image resources with status code {response.status_code}"
-        )
+    _log_response(response, "list")
 
 
 def show_mariner_baremetal_installer(
     cmd,
     resource_group_name,
     installer_name,
-    location=None,
-    tags=None,
 ):
     # Get Entra Id (AAD) token
-    profile = Profile(cmd.cli_ctx)
-    access_token = profile.get_raw_token()[0][2].get("accessToken")
-    if access_token is None:
-        raise CLIError(
-            "Error retrieving AAD access token! Please log in and try again."
-        )
+    access_token = _get_access_token(cmd)
 
     # Create the GET request URL
     endpoint_url = _construct_endpoint_url(
@@ -146,46 +99,19 @@ def show_mariner_baremetal_installer(
     )
 
     # Create the GET request
-    req_headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json",
-        "x-ms-client-request-id": str(uuid.uuid1()),
-    }
-    logger.debug(f"Request headers: {req_headers}")
+    req_headers = _set_request_headers(access_token)
 
     response = requests.get(
         endpoint_url,
         headers=req_headers,
+        timeout=DEFAULT_TIMEOUT,
     )
-
-    # Log the response
-    logger.debug(f"Response status code: {response.status_code}")
-    logger.debug(f"Response headers: {response.headers}")
-    logger.debug(f"Response content: {response.json()}")
-
-    # Check the response status code
-    if response.status_code == 200:
-        print(json.dumps(response.json(), indent=2))
-    else:
-        logger.error(
-            f"Failed to show Mariner Baremetal installer image {installer_name} with status code {response.status_code}"
-        )
+    _log_response(response, "show")
 
 
-def delete_mariner_baremetal_installer(
-    cmd,
-    resource_group_name,
-    installer_name,
-    location=None,
-    tags=None,
-):
+def delete_mariner_baremetal_installer(cmd, resource_group_name, installer_name):
     # Get Entra Id (AAD) token
-    profile = Profile(cmd.cli_ctx)
-    access_token = profile.get_raw_token()[0][2].get("accessToken")
-    if access_token is None:
-        raise CLIError(
-            "Error retrieving AAD access token! Please log in and try again."
-        )
+    access_token = _get_access_token(cmd)
 
     # Create the DELETE request URL
     endpoint_url = _construct_endpoint_url(
@@ -193,36 +119,27 @@ def delete_mariner_baremetal_installer(
     )
 
     # Create the DELETE request
-    req_headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json",
-        "x-ms-client-request-id": str(uuid.uuid1()),
-    }
-    logger.debug(f"Request headers: {req_headers}")
+    req_headers = _set_request_headers(access_token)
 
     response = requests.delete(
         endpoint_url,
         headers=req_headers,
+        timeout=DEFAULT_TIMEOUT,
     )
-
-    # # Log the response
-    logger.debug(f"Response status code: {response.status_code}")
-    logger.debug(f"Response headers: {response.headers}")
-
-    # # Check the response status code
-    if response.status_code == 200:
-        print(
-            f"Successfully deleted Mariner Baremetal installer image {installer_name}"
-        )
-    elif response.status_code == 204:
-        print(f"Already deleted Mariner Baremetal installer image {installer_name}")
-    else:
-        logger.error(
-            f"Failed to delete Mariner Baremetal installer image {installer_name} with status code {response.status_code}"
-        )
+    _log_response(response, "delete")
 
 
 # Helper functions for processing input data
+
+
+def _get_access_token(cmd):
+    profile = Profile(cmd.cli_ctx)
+    access_token = profile.get_raw_token()[0][2].get("accessToken")
+    if access_token is None:
+        raise CLIError(
+            "Error retrieving AAD access token! Please log in and try again."
+        )
+    return access_token
 
 
 def _generate_storage_account_url(storage_account_name):
@@ -251,11 +168,11 @@ def _construct_endpoint_url(sub_id, resource_group_name, name):
 
 def _create_host_config_dict(host_configuration_path):
     try:
-        with open(host_configuration_path, "r") as host_config:
+        with open(host_configuration_path, "r", encoding="utf-8") as host_config:
             host_config_data = yaml.safe_load(host_config)
             return host_config_data
     except Exception as e:
-        logger.error(f"Error parsing host configuration file: {e}")
+        logger.error("Error parsing host configuration file: %s\n", e)
         return None
 
 
@@ -275,4 +192,42 @@ def _generate_create_request_body(
         },
     }
     json_request_body = json.dumps(request_body)
+    logger.debug("Request body: %s\n", json_request_body)
     return json_request_body
+
+
+def _set_request_headers(access_token):
+    req_headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+        "x-ms-client-request-id": str(uuid.uuid1()),
+    }
+    logger.debug("Request headers: %s\n", req_headers)
+    return req_headers
+
+
+def _log_response(response, method):
+    logger.debug("Response status code: %d\n", response.status_code)
+    logger.debug("Response headers: %s\n", response.headers)
+    if method == "delete":
+        print(response.status_code)
+        if response.status_code == 200:
+            logger.info(
+                "Successfully deleted Mariner Baremetal installer image resource\n"
+            )
+        else:
+            logger.error(
+                "Failed to delete Mariner Baremetal installer image resource with status code %d\n",
+                response.status_code,
+            )
+    else:
+        # Delete operations don't have a response body so only log the response body for other operations
+        logger.debug("Response content: %s\n", response.content)
+        if response.status_code == 200:
+            print(json.dumps(response.json(), indent=2))
+        else:
+            logger.error(
+                "Failed to %s Mariner Baremetal installer image resource with status code %d\n",
+                method,
+                response.status_code,
+            )

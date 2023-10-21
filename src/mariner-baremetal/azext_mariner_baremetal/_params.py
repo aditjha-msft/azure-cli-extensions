@@ -4,8 +4,6 @@
 # --------------------------------------------------------------------------------------------
 # pylint: disable=line-too-long
 
-from knack.arguments import CLIArgumentType
-
 
 def load_arguments(self, _):
     from azure.cli.core.commands.parameters import tags_type
@@ -16,7 +14,7 @@ def load_arguments(self, _):
     with self.argument_context("mariner-baremetal installer") as c:
         c.argument(
             "host_configuration",
-            options_list=["--host-configuration", "-hc"],
+            options_list=["--host-configuration", "-f"],
             help="Path to the host configuration file for use on baremetal machine.",
         )
         c.argument(

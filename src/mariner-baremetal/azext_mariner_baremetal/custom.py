@@ -172,7 +172,7 @@ def _create_host_config_dict(host_configuration_path):
             host_config_data = yaml.safe_load(host_config)
             return host_config_data
     except Exception as e:
-        logger.error("Error parsing host configuration file: %s\n", e)
+        logger.error("Error parsing host configuration file: %s", e)
         return None
 
 
@@ -192,7 +192,7 @@ def _generate_create_request_body(
         },
     }
     json_request_body = json.dumps(request_body)
-    logger.debug("Request body: %s\n", json_request_body)
+    logger.debug("Request body: %s", json_request_body)
     return json_request_body
 
 
@@ -202,32 +202,30 @@ def _set_request_headers(access_token):
         "Content-Type": "application/json",
         "x-ms-client-request-id": str(uuid.uuid1()),
     }
-    logger.debug("Request headers: %s\n", req_headers)
+    logger.debug("Request headers: %s", req_headers)
     return req_headers
 
 
 def _log_response(response, method):
-    logger.debug("Response status code: %d\n", response.status_code)
-    logger.debug("Response headers: %s\n", response.headers)
+    logger.debug("Response status code: %d", response.status_code)
+    logger.debug("Response headers: %s", response.headers)
+    # Delete operation doesn't have a response body
     if method == "delete":
-        print(response.status_code)
         if response.status_code == 200:
-            logger.info(
-                "Successfully deleted Mariner Baremetal installer image resource\n"
-            )
+            print("Successfully deleted Mariner Baremetal installer image resource")
         else:
             logger.error(
-                "Failed to delete Mariner Baremetal installer image resource with status code %d\n",
+                "Failed to delete Mariner Baremetal installer image resource with status code: %d",
                 response.status_code,
             )
     else:
-        # Delete operations don't have a response body so only log the response body for other operations
-        logger.debug("Response content: %s\n", response.content)
+        logger.debug("Response content: %s", response.content)
         if response.status_code == 200:
             print(json.dumps(response.json(), indent=2))
         else:
             logger.error(
-                "Failed to %s Mariner Baremetal installer image resource with status code %d\n",
+                "Failed to %s Mariner Baremetal installer image resource with status code: %d",
                 method,
                 response.status_code,
             )
+            logger.error("Response content: %s", response.json())
